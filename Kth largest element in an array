@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Helper function to heapify the heap
+void heapify(int* heap, int size, int root) {
+    int smallest = root;
+    int left = 2 * root + 1;
+    int right = 2 * root + 2;
+
+    if (left < size && heap[left] < heap[smallest]) {
+        smallest = left;
+    }
+
+    if (right < size && heap[right] < heap[smallest]) {
+        smallest = right;
+    }
+
+    if (smallest != root) {
+        int temp = heap[root];
+        heap[root] = heap[smallest];
+        heap[smallest] = temp;
+        heapify(heap, size, smallest);
+    }
+}
+
+// Function to maintain the min-heap of size k
+void pushHeap(int* heap, int* size, int value, int k) {
+    if (*size < k) {
+        heap[*size] = value;
+        (*size)++;
+        for (int i = *size / 2 - 1; i >= 0; i--) {
+            heapify(heap, *size, i);
+        }
+    } else if (value > heap[0]) {
+        heap[0] = value;
+        heapify(heap, k, 0);
+    }
+}
+
+// Function to find the kth largest element
+int findKthLargest(int* nums, int numsSize, int k) {
+    int* heap = (int*)malloc(k * sizeof(int));
+    int heapSize = 0;
+
+    for (int i = 0; i < numsSize; i++) {
+        pushHeap(heap, &heapSize, nums[i], k);
+    }
+
+    int result = heap[0];
+    free(heap);
+    return result;
+}
