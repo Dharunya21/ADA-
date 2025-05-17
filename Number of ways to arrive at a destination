@@ -1,0 +1,66 @@
+import java.util.*;
+
+public class Solution {
+    public int countPaths(int n, int[][] roads) {
+        final int MOD = 1_000_000_007;
+
+        // Step 1: Build the graph (adjacency list)
+        List<int[]>[] graph = new List[n];
+        for (int i = 0; i < n; i++) {
+            graph[i] = new ArrayList<>();
+        }
+        for (int[] road : roads) {
+            int u = road[0], v = road[1], time = road[2];
+            graph[u].add(new int[]{v, time});
+            graph[v].add(new int[]{u, time});
+        }
+
+        // Step 2: Dijkstra's Algorithm to find the shortest time
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[0] = 0;
+
+        int[] ways = new int[n];
+        ways[0] = 1; // Only one way to start at intersection 0
+
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[1]));
+        pq.offer(new int[]{0, 0}); // {intersection, time}
+
+        while (!pq.isEmpty()) {
+            int[] current = pq.poll();
+            int u = current[0], currentTime = current[1];
+
+            // If current time is already larger than the shortest time, skip it
+            if (currentTime > dist[u]) {
+                continue;
+            }
+
+            // Traverse all neighbors
+            for (int[] neighbor : graph[u]) {
+                int v = neighbor[0], travelTime = neighbor[1];
+                int newDist = currentTime + travelTime;
+
+                // If we find a shorter path to v
+                if (newDist < dist[v]) {
+                    dist[v] = newDist;
+                    ways[v] = ways[u]; // Reset the number of ways
+                    pq.offer(new int[]{v, newDist});
+                }
+                // If we find an equal path to v, add the number of ways to reach u
+                else if (newDist == dist[v]) {
+                    ways[v] = (ways[v] + ways[u]) % MOD;
+                }
+            }
+        }
+
+        // The result is the number of ways to reach intersection n-1
+        return ways[n - 1];
+    }
+
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+        
+        // Call countPaths() with appropriate n and roads as inputs
+        // Example: solution.countPaths(n, roads);
+    }
+}
