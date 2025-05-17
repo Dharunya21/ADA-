@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int canFinish(int numCourses, int** prerequisites, int prerequisitesSize, int* prerequisitesColSize) {
+    // Step 1: Create the graph (adjacency list) and in-degree array
+    int* inDegree = (int*)calloc(numCourses, sizeof(int));  // In-degree of each course
+    int** graph = (int**)malloc(numCourses * sizeof(int*));
+    for (int i = 0; i < numCourses; ++i) {
+        graph[i] = (int*)malloc(numCourses * sizeof(int));
+        for (int j = 0; j < numCourses; ++j) {
+            graph[i][j] = 0;  // Initialize the graph with no edges
+        }
+    }
+
+    // Step 2: Build the graph and populate the in-degree array
+    for (int i = 0; i < prerequisitesSize; ++i) {
+        int course = prerequisites[i][0];
+        int prerequisite = prerequisites[i][1];
+        graph[prerequisite][course] = 1;  // Add edge: prerequisite -> course
+        inDegree[course]++;  // Increase in-degree for course
+    }
+
+    // Step 3: Perform Kahn's Algorithm (BFS)
+    int* queue = (int*)malloc(numCourses * sizeof(int));  // Queue for courses with no prerequisites
+    int front = 0, back = 0;
+
+    // Add all courses with no prerequisites (in-degree 0) to the queue
+    for (int i = 0; i < numCourses; ++i) {
+        if (inDegree[i] == 0) {
+            queue[back++] = i;
+        }
+    }
+
+    // Process courses in the queue
+    int coursesProcessed = 0;
+    while (front < back) {
+        int course = queue[front++];  // Get the next course from the queue
+        coursesProcessed++;
+
+        // Decrease in-degree for all neighbors (courses dependent on this one)
+        for (int i = 0; i < numCourses; ++i) {
+            if (graph[course][i] == 1) {
+                inDegree[i]--;
+                if (inDegree[i] == 0) {
+                    queue[back++] = i;  // Add course to queue if no more prerequisites
+                }
+            }
+        }
+    }
+
+    // If all courses are processed, return true. Otherwise, return false (cycle exists)
+    free(queue);
+    for (int i = 0; i < numCourses; ++i) {
+        free(graph[i]);
+    }
+    free(graph);
+    free(inDegree);
+
+    return coursesProcessed == numCourses;
+}
